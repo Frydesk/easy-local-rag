@@ -1,34 +1,28 @@
 @echo off
-echo Testing Spanish RAG System...
+echo Bienvenido al Sistema de Chat en Español
+echo ======================================
+echo.
 
 :: Activate virtual environment
 call venv\Scripts\activate
 
-:: Check if the API is running
-curl -s -f "http://localhost:8000/docs" >nul 2>&1
-if errorlevel 1 (
-    echo Error: RAG API is not running on port 8000
-    echo Please start the API first using start_rag.bat
-    pause
-    exit /b 1
-)
+:chat_loop
+echo.
+set /p query="Tú: "
+if "%query%"=="" goto chat_loop
+if /i "%query%"=="salir" goto end
+if /i "%query%"=="exit" goto end
 
-:: Test query
 echo.
-echo Sending test query...
-echo Query: "¿Qué es el Dr. Simi?"
-echo.
-curl -X POST "http://localhost:8000/query" ^
+echo Dr. Simi: 
+curl -s -X POST "http://localhost:8000/query" ^
 -H "Content-Type: application/json" ^
--d "{\"text\": \"¿Qué es el Dr. Simi?\"}" ^
--H "Accept: application/json"
+-d "{\"text\": \"%query%\"}" ^
+-H "Accept: application/json" | python -c "import sys, json; print(json.load(sys.stdin)['answer'])"
 
+goto chat_loop
+
+:end
 echo.
-echo.
-echo Test complete!
-echo If you see a JSON response above, the system is working correctly.
-echo If you see an error, please check that:
-echo 1. The API is running (start_rag.bat)
-echo 2. You have documents in the knowledge folder
-echo 3. The documents have been processed (process_knowledge.py)
+echo ¡Gracias por usar el sistema! ¡Hasta pronto!
 pause 
