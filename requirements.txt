@@ -6,3 +6,6 @@ pyyaml
 beautifulsoup4
 lxml
 python-dotenv
+fastapi
+uvicorn
+inflect
