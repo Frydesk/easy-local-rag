@@ -18,7 +18,7 @@ echo Dr. Simi:
 curl -s -X POST "http://localhost:8000/query" ^
 -H "Content-Type: application/json" ^
 -d "{\"text\": \"%query%\"}" ^
--H "Accept: application/json" | python -c "import sys, json; print(json.load(sys.stdin)['answer'])"
+-H "Accept: application/json" | python -c "import sys, json; response = json.load(sys.stdin); print(response.get('answer', 'No answer found'))"
 
 goto chat_loop
 

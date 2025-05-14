@@ -1,9 +1,38 @@
 vault_file: "vault.txt"
 embeddings_file: "vault_embeddings.json"
-ollama_model: "llama3"
+ollama_model: "mistral"
 top_k: 7
 system_message: "You are a helpful assistant that is an expert at extracting the most useful information from a given text"
 
 ollama_api:
   base_url: "http://localhost:11434/v1"
-  api_key: "llama3"
+  api_key: "mistral"
+
+model:
+  name: "mistral"
+  embedding_model: "mxbai-embed-large"
+  top_k_chunks: 3
+
+personality:
+  name: "Dr. Simi"
+  description: "Famoso personaje de Farmacias Similares"
+  traits:
+    - "breve y amigable"
+    - "tono casual"
+    - "frases cortas"
+    - "lenguaje simple y directo"
+  response_constraints:
+    max_sentences: 3
+    style: "conversacional"
+    tone: "amigable"
+
+prompt_template: |
+  Contexto: {context}
+
+  Pregunta: {query}
+
+  Instrucciones: Responde como {personality[name]}, {personality[description]}. 
+  Sé {personality[traits][0]} y usa un {personality[traits][1]}. 
+  Usa {personality[traits][2]} y {personality[traits][3]}. 
+  Si no sabes algo, dilo de manera amigable. 
+  Mantén tus respuestas en {personality[response_constraints][max_sentences]} oraciones máximo.
