@@ -35,7 +35,8 @@ def get_relevant_context(rewritten_input, vault_embeddings, vault_content, top_k
 
 def rewrite_query(user_input_json, conversation_history, ollama_model):
     user_input = json.loads(user_input_json)["Query"]
-    context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation_history[-2:]])
+    # Get the last 5 messages instead of 2
+    context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation_history[-5:]])
     prompt = f"""Rewrite the following query by incorporating relevant context from the conversation history.
     The rewritten query should:
     
@@ -43,6 +44,7 @@ def rewrite_query(user_input_json, conversation_history, ollama_model):
     - Expand and clarify the query to make it more specific and informative for retrieving relevant context
     - Avoid introducing new topics or queries that deviate from the original query
     - DONT EVER ANSWER the Original query, but instead focus on rephrasing and expanding it into a new query
+    - Consider the last 5 messages of conversation history for better context understanding
     
     Return ONLY the rewritten query text, without any additional formatting or explanations.
     
@@ -62,22 +64,21 @@ def rewrite_query(user_input_json, conversation_history, ollama_model):
     )
     rewritten_query = response.choices[0].message.content.strip()
     return json.dumps({"Rewritten Query": rewritten_query})
-   
+
 def ollama_chat(user_input, system_message, vault_embeddings, vault_content, ollama_model, conversation_history):
+    # Add user input to conversation history
     conversation_history.append({"role": "user", "content": user_input})
     
-    if len(conversation_history) > 1:
-        query_json = {
-            "Query": user_input,
-            "Rewritten Query": ""
-        }
-        rewritten_query_json = rewrite_query(json.dumps(query_json), conversation_history, ollama_model)
-        rewritten_query_data = json.loads(rewritten_query_json)
-        rewritten_query = rewritten_query_data["Rewritten Query"]
-        print(PINK + "Original Query: " + user_input + RESET_COLOR)
-        print(PINK + "Rewritten Query: " + rewritten_query + RESET_COLOR)
-    else:
-        rewritten_query = user_input
+    # Always use query rewriting for better context understanding
+    query_json = {
+        "Query": user_input,
+        "Rewritten Query": ""
+    }
+    rewritten_query_json = rewrite_query(json.dumps(query_json), conversation_history, ollama_model)
+    rewritten_query_data = json.loads(rewritten_query_json)
+    rewritten_query = rewritten_query_data["Rewritten Query"]
+    print(PINK + "Original Query: " + user_input + RESET_COLOR)
+    print(PINK + "Rewritten Query: " + rewritten_query + RESET_COLOR)
     
     relevant_context = get_relevant_context(rewritten_query, vault_embeddings, vault_content)
     if relevant_context:
@@ -90,8 +91,10 @@ def ollama_chat(user_input, system_message, vault_embeddings, vault_content, oll
     if relevant_context:
         user_input_with_context = user_input + "\n\nRelevant Context:\n" + context_str
     
+    # Update the last message with context
     conversation_history[-1]["content"] = user_input_with_context
     
+    # Create messages array with system message and conversation history
     messages = [
         {"role": "system", "content": system_message},
         *conversation_history
@@ -103,6 +106,7 @@ def ollama_chat(user_input, system_message, vault_embeddings, vault_content, oll
         max_tokens=2000,
     )
     
+    # Add assistant's response to conversation history
     conversation_history.append({"role": "assistant", "content": response.choices[0].message.content})
     
     return response.choices[0].message.content
@@ -147,7 +151,11 @@ system_message = "You are a helpful assistant that is an expert at extracting th
 
 while True:
     user_input = input(YELLOW + "Ask a query about your documents (or type 'quit' to exit): " + RESET_COLOR)
-    if user_input.lower() == 'quit':
+    
+    # Check for conversation ending phrases
+    end_phrases = ['quit', 'adios', 'hasta luego', 'ya me voy']
+    if user_input.lower() in end_phrases:
+        print(NEON_GREEN + "\n¡Hasta luego! Gracias por hablar conmigo." + RESET_COLOR)
         break
     
     response = ollama_chat(user_input, system_message, vault_embeddings_tensor, vault_content, args.model, conversation_history)
