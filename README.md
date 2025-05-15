@@ -1,47 +1,134 @@
-# Ollama-RAG: Local RAG with Ollama + Email RAG
+# Ollama RAG (Retrieval-Augmented Generation) System
 
-### YouTube Tutorials
-- https://www.youtube.com/watch?v=Oe-7dGDyzPM
-- https://www.youtube.com/watch?v=vFGng_3hDRk
-### Latest YouTube Updated Features
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/0X7raD1kISQ/0.jpg)](https://www.youtube.com/watch?v=0X7raD1kISQ)
-### Setup
-1. git clone https://github.com/josepheudave/ollama-RAG.git
-2. cd ollama-RAG
-3. pip install -r requirements.txt
-4. Install Ollama (https://ollama.com/download)
-5. ollama pull llama3 (etc)
-6. ollama pull mxbai-embed-large
-7. run upload.py (pdf, .txt, JSON)
-8. run localrag.py (with query re-write)
-9. run localrag_no_rewrite.py (no query re-write)
+A powerful RAG system built with Ollama, FastAPI, and Python that enables intelligent document querying and response generation with customizable personalities. The system is designed to work with any Ollama-compatible model, giving you the flexibility to choose the best model for your needs.
 
-### Email RAG Setup
-1. git clone https://github.com/josepheudave/ollama-RAG.git
-2. cd ollama-RAG
-3. pip install -r requirements.txt
-4. Install Ollama (https://ollama.com/download)
-5. ollama pull llama3 (etc)
-6. ollama pull mxbai-embed-large
-7. set YOUR email logins in .env (for gmail create app password (video))
-9. python collect_emails.py to download your emails
-10. python emailrag2.py to talk to your emails
+## Features
 
-### Latest Updates
-- Added Email RAG Support (v1.3)
-- Upload.py (v1.2)
-   - replaced /n/n with /n 
-- New embeddings model mxbai-embed-large from ollama (1.2)
-- Rewrite query function to improve retrival on vauge questions (1.2)
-- Pick your model from the CLI (1.1)
-  - python localrag.py --model mistral (llama3 is default) 
-- Talk in a true loop with conversation history (1.1)
-   
-### My YouTube Channel
-https://www.youtube.com/c/AllAboutAI
+- 🤖 Compatible with any Ollama model (Mistral, Llama2, Mixtral, etc.)
+- 📚 Document processing and embedding generation
+- 🔍 Semantic search capabilities
+- 🎭 Customizable AI personalities
+- 🌐 RESTful API interface
+- 📝 Support for multiple document formats
+- 🔒 Local processing for enhanced privacy
 
-### What is RAG?
-RAG is a way to enhance the capabilities of LLMs by combining their powerful language understanding with targeted retrieval of relevant information from external sources often with using embeddings in vector databases, leading to more accurate, trustworthy, and versatile AI-powered applications
+## Prerequisites
 
-### What is Ollama?
-Ollama is an open-source platform that simplifies the process of running powerful LLMs locally on your own machine, giving users more control and flexibility in their AI projects. https://www.ollama.com
+- Python 3.8 or higher
+- Ollama installed and running locally
+- Windows OS (for batch files) or Linux/Mac (with script modifications)
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/ollama-RAG.git
+cd ollama-RAG
+```
+
+2. Create and activate a virtual environment:
+```bash
+python -m venv venv
+# On Windows
+venv\Scripts\activate
+# On Linux/Mac
+source venv/bin/activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Run the setup script:
+```bash
+# On Windows
+setup.bat
+# On Linux/Mac
+python setup.py
+```
+
+## Configuration
+
+The system is configured through `config.yaml`. Key settings include:
+
+- `ollama_model`: The Ollama model to use (e.g., "mistral", "llama2", "mixtral", etc.)
+- `top_k`: Number of relevant chunks to retrieve
+- `personality`: AI personality configuration
+- `model`: Embedding model settings
+
+You can use any model available in Ollama by changing the `ollama_model` setting in the configuration file.
+
+## Knowledge Base Setup
+
+1. Create a `knowledge` directory in the project root:
+```bash
+mkdir knowledge
+```
+
+2. Place your text files in the `knowledge` directory. Supported formats:
+   - Text files (.txt)
+   - PDF files (.pdf)
+   - Other text-based documents
+
+3. The system will process these files and create embeddings for semantic search.
+
+## API Usage
+
+1. Start the API server:
+```bash
+# On Windows
+llm-api.bat
+# On Linux/Mac
+python rag_api.py
+```
+
+2. The API will be available at `http://localhost:8000`
+
+3. Example API call:
+```python
+import requests
+
+response = requests.post(
+    "http://localhost:8000/query",
+    json={"text": "Your question here"}
+)
+print(response.json())
+```
+
+## API Endpoints
+
+### POST /query
+Query the RAG system with a question.
+
+Request body:
+```json
+{
+    "text": "Your question here"
+}
+```
+
+Response:
+```json
+{
+    "answer": "AI response",
+    "sources": ["Relevant source 1", "Relevant source 2"]
+}
+```
+
+## Project Structure
+
+- `rag_api.py`: Main FastAPI application
+- `process_knowledge.py`: Document processing utilities
+- `config.yaml`: Configuration settings
+- `knowledge/`: Directory for your knowledge base files
+- `text/`: Text processing utilities
+- `requirements.txt`: Python dependencies
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under MIT License
