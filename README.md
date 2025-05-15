@@ -6,7 +6,7 @@
 ### Latest YouTube Updated Features
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/0X7raD1kISQ/0.jpg)](https://www.youtube.com/watch?v=0X7raD1kISQ)
 ### Setup
-1. git clone https://github.com/User/ollama-RAG.git
+1. git clone https://github.com/josepheudave/ollama-RAG.git
 2. cd ollama-RAG
 3. pip install -r requirements.txt
 4. Install Ollama (https://ollama.com/download)
@@ -17,7 +17,7 @@
 9. run localrag_no_rewrite.py (no query re-write)
 
 ### Email RAG Setup
-1. git clone https://github.com/User/ollama-RAG.git
+1. git clone https://github.com/josepheudave/ollama-RAG.git
 2. cd ollama-RAG
 3. pip install -r requirements.txt
 4. Install Ollama (https://ollama.com/download)
