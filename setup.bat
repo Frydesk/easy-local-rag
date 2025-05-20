@@ -34,6 +34,10 @@ python -m pip install --upgrade pip
 echo Installing requirements...
 pip install -r requirements.txt
 
+:: Install WebSocket dependencies
+echo Installing WebSocket dependencies...
+pip install "uvicorn[standard]" websockets
+
 :: Pull required Ollama models
 echo Pulling Ollama models...
 ollama pull llama2
