@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 import ollama
 from text.cleaners import spanish_cleaner_with_accents
@@ -6,6 +6,7 @@ import os
 import yaml
 import json
 import codecs
+import asyncio
 
 app = FastAPI(title="Spanish RAG API")
 
@@ -60,16 +61,15 @@ def get_relevant_chunks(query: str, chunks: list[str], top_k: int = None):
     top_indices = sorted(range(len(similarities)), key=lambda i: similarities[i], reverse=True)[:top_k]
     return [chunks[i] for i in top_indices]
 
-@app.post("/query", response_model=Response)
-async def query_rag(query: Query):
+async def process_query(query_text: str):
     try:
         # Clean and normalize the query
-        cleaned_query = spanish_cleaner_with_accents(query.text)
+        cleaned_query = spanish_cleaner_with_accents(query_text)
         
         # Load the vault
         chunks = load_vault()
         if not chunks:
-            raise HTTPException(status_code=404, detail="No documents found in vault.txt")
+            raise Exception("No documents found in vault.txt")
         
         # Get relevant chunks
         relevant_chunks = get_relevant_chunks(cleaned_query, chunks)
@@ -95,36 +95,75 @@ async def query_rag(query: Query):
             {"role": "user", "content": prompt}
         ]
 
-        print("Sending request to Ollama with messages:", messages)  # Debug log
         response = ollama.chat(model=config["ollama_model"], messages=messages)
-        print("Received response from Ollama:", response)  # Debug log
         
-        # Ensure we have a valid response
         if not response:
-            raise HTTPException(status_code=500, detail="Empty response from Ollama")
+            raise Exception("Empty response from Ollama")
             
         # Handle both dictionary and object responses
         if isinstance(response, dict):
             if 'message' not in response or 'content' not in response['message']:
-                raise HTTPException(status_code=500, detail="Invalid response format from Ollama")
+                raise Exception("Invalid response format from Ollama")
             answer = response['message']['content']
         else:
             if not hasattr(response, 'message') or not hasattr(response.message, 'content'):
-                raise HTTPException(status_code=500, detail="Invalid response format from Ollama")
+                raise Exception("Invalid response format from Ollama")
             answer = response.message.content
         
         # Ensure proper UTF-8 BOM encoding
         answer = answer.encode('utf-8-sig', errors='ignore').decode('utf-8-sig')
         
-        return Response(
-            answer=answer,
-            sources=relevant_chunks
-        )
+        return {
+            "answer": answer,
+            "sources": relevant_chunks
+        }
     
     except Exception as e:
-        print(f"Error in query_rag: {str(e)}")  # Debug log
-        raise HTTPException(status_code=500, detail=str(e))
+        raise Exception(f"Error in process_query: {str(e)}")
+
+@app.websocket("/airesponse")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            # Wait for the start message
+            start_message = await websocket.receive_text()
+            if start_message.lower() != "start":
+                await websocket.send_json({"error": "Expected 'start' message"})
+                continue
+
+            # Wait for the query text
+            query_text = await websocket.receive_text()
+            
+            # Process the query
+            try:
+                result = await process_query(query_text)
+                await websocket.send_json({
+                    "type": "answer",
+                    "data": result
+                })
+            except Exception as e:
+                await websocket.send_json({
+                    "type": "error",
+                    "message": str(e)
+                })
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
+    except Exception as e:
+        print(f"Error in websocket connection: {str(e)}")
+        try:
+            await websocket.send_json({
+                "type": "error",
+                "message": str(e)
+            })
+        except:
+            pass
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "message": "API is running"}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="127.0.0.1", port=8100) 
