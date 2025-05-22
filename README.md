@@ -22,25 +22,11 @@ A powerful RAG system built with Ollama, FastAPI, and Python that enables intell
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/ollama-RAG.git
+git clone https://github.com/josepheudave/ollama-RAG.git
 cd ollama-RAG
 ```
 
-2. Create and activate a virtual environment:
-```bash
-python -m venv venv
-# On Windows
-venv\Scripts\activate
-# On Linux/Mac
-source venv/bin/activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Run the setup script:
+## Run the setup script:
 ```bash
 # On Windows
 setup.bat
@@ -124,10 +110,6 @@ Response:
 - `knowledge/`: Directory for your knowledge base files
 - `text/`: Text processing utilities
 - `requirements.txt`: Python dependencies
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
