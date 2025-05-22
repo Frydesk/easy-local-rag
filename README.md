@@ -62,6 +62,10 @@ mkdir knowledge
 
 3. The system will process these files and create embeddings for semantic search.
 
+## Testing
+
+you can test funcionality and RAG system by running test_llm.bat with llm-api already open 
+
 ## API Usage
 
 1. Start the API server:
