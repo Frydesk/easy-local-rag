@@ -2,6 +2,9 @@
 
 A powerful RAG system built with Ollama, FastAPI, and Python that enables intelligent document querying and response generation with customizable personalities. The system is designed to work with any Ollama-compatible model, giving you the flexibility to choose the best model for your needs.
 
+This proyect was tested on Windows, although Linux is most probably compatible, it has not been tested.
+
+
 ## Features
 
 - 🤖 Compatible with any Ollama model (Mistral, Llama2, Mixtral, etc.)
