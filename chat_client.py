@@ -10,11 +10,11 @@ async def chat():
             if query.lower() in ['salir', 'exit']:
                 break
                 
-            # Send start message
-            await websocket.send('start')
-            
-            # Send the query
-            await websocket.send(query)
+            # Send the query directly in JSON format
+            await websocket.send(json.dumps({
+                "type": "message",
+                "content": query
+            }))
             
             # Get the response
             response = await websocket.recv()

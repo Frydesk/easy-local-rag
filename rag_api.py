@@ -126,30 +126,56 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            # Wait for the start message
-            start_message = await websocket.receive_text()
-            if start_message.lower() != "start":
-                await websocket.send_json({"error": "Expected 'start' message"})
-                continue
-
-            # Wait for the query text
-            query_text = await websocket.receive_text()
-            
-            # Process the query
             try:
-                result = await process_query(query_text)
-                await websocket.send_json({
-                    "type": "answer",
-                    "data": result
-                })
-            except Exception as e:
-                await websocket.send_json({
-                    "type": "error",
-                    "message": str(e)
-                })
+                # Wait for any message (text or JSON)
+                message = await websocket.receive_text()
+                
+                # Try to parse as JSON
+                try:
+                    message_data = json.loads(message)
+                    if not isinstance(message_data, dict) or 'type' not in message_data or 'content' not in message_data:
+                        await websocket.send_json({
+                            "type": "error",
+                            "message": "Invalid message format. Expected {type: string, content: string}"
+                        })
+                        continue
+                    query_text = message_data['content']
+                except json.JSONDecodeError:
+                    # If not JSON, treat the message as plain text query
+                    query_text = message
+                
+                print(f"\nUser: {query_text}")  # Print user's query
+                
+                # Process the query
+                try:
+                    result = await process_query(query_text)
+                    # Print just the answer to console
+                    print(f"Dr. Simi: {result['answer']}\n")
+                    await websocket.send_json({
+                        "type": "answer",
+                        "data": result
+                    })
+                except Exception as e:
+                    error_msg = str(e)
+                    print(f"Error: {error_msg}")
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": error_msg
+                    })
 
-    except WebSocketDisconnect:
-        print("Client disconnected")
+            except WebSocketDisconnect:
+                print("Client disconnected")
+                break
+            except Exception as e:
+                print(f"Error in message processing: {str(e)}")
+                try:
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": str(e)
+                    })
+                except:
+                    pass
+
     except Exception as e:
         print(f"Error in websocket connection: {str(e)}")
         try:

@@ -76,38 +76,69 @@ llm-api.bat
 python rag_api.py
 ```
 
-2. The API will be available at `http://localhost:8000`
+2. The API will be available at `http://localhost:8100`
 
-3. Example API call:
+3. WebSocket Example:
 ```python
-import requests
+import asyncio
+import websockets
+import json
 
-response = requests.post(
-    "http://localhost:8000/query",
-    json={"text": "Your question here"}
-)
-print(response.json())
+async def chat():
+    uri = 'ws://localhost:8100/airesponse'
+    async with websockets.connect(uri) as websocket:
+        # Send a message
+        message = {
+            "type": "message",
+            "content": "Your question here"
+        }
+        await websocket.send(json.dumps(message))
+        
+        # Receive response
+        response = await websocket.recv()
+        result = json.loads(response)
+        print(result)
+
+asyncio.run(chat())
 ```
 
 ## API Endpoints
 
-### POST /query
-Query the RAG system with a question.
+### WebSocket /airesponse
+Interactive chat endpoint for real-time communication with the RAG system.
 
-Request body:
+Message Format:
 ```json
 {
-    "text": "Your question here"
+    "type": "message",
+    "content": "Your question here"
 }
 ```
 
-Response:
+Response Format:
 ```json
 {
-    "answer": "AI response",
-    "sources": ["Relevant source 1", "Relevant source 2"]
+    "type": "answer",
+    "data": {
+        "answer": "AI response",
+        "sources": ["Relevant source 1", "Relevant source 2"]
+    }
 }
 ```
+
+Error Response Format:
+```json
+{
+    "type": "error",
+    "message": "Error description"
+}
+```
+
+The WebSocket endpoint supports:
+- Real-time bidirectional communication
+- JSON message format
+- Error handling with descriptive messages
+- Source attribution for responses
 
 ## Project Structure
 
