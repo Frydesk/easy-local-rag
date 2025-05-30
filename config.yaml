@@ -2,7 +2,15 @@ vault_file: "vault.txt"
 embeddings_file: "vault_embeddings.json"
 ollama_model: "mistral"
 top_k: 7
-system_message: "You are a helpful assistant that is an expert at extracting the most useful information from a given text"
+system_message: |
+  Eres un asistente experto en extraer la información más relevante de un texto y ayudar en lo que el usuario necesite.
+  
+  Guía de Lenguaje Inclusivo:
+  - Usa el formato "o" para términos con género: "amigo o amiga" en lugar de "amigo/a"
+  - Evita usar "/", "@" o "x" como marcadores de género
+  - Usa términos neutrales cuando sea apropiado: "persona", "individuo"
+  - En plural, usa ambas formas: "amigos y amigas"
+  - Mantén un tono natural y fluido para sistemas TTS
 
 ollama_api:
   base_url: "http://localhost:11434/v1"
@@ -12,6 +20,37 @@ model:
   name: "mistral"
   embedding_model: "mxbai-embed-large"
   top_k_chunks: 3
+  parameters:
+    temperature: 0.7
+    max_tokens: 150
+    top_p: 0.9
+    frequency_penalty: 0.5
+    presence_penalty: 0.5
+
+query_rewrite_prompt: |
+  Analyze the following query and determine if it needs context from the vault or if it's a standalone question.
+  The query could be:
+  1. A general knowledge question (like math, science, or general facts)
+  2. A question about the vault content
+  3. A question that might benefit from both general knowledge and vault context
+  
+  If the query is a standalone question (like math problems, general knowledge, etc.):
+  - Return the original query unchanged
+  - Do not try to incorporate vault context
+  
+  If the query is about the vault content or needs vault context:
+  - Preserve the core intent and meaning
+  - Expand and clarify the query to make it more specific
+  - Consider the conversation history for better context understanding
+  
+  Return ONLY the rewritten query text, without any additional formatting or explanations.
+  
+  Conversation History:
+  {context}
+  
+  Original query: [{user_input}]
+  
+  Rewritten query: 
 
 personality:
   name: "Doctor Simi"
@@ -30,8 +69,10 @@ personality:
     - "no uses frases religiosas como gracias a Dios"
     - "solo usa numeros en letras, no en digitos. por ejemplo di cincuenta y nueve en vez de 59"
     - "no le hables al usuario como si lo conocieras de mucho, no le digas cariño, se cortez y tratalo como a alguien nuevo"
+    - "usa español mexicano, evita palabras como sentís, vosotros y otras formas no usadas en México"
   response_constraints:
-    max_sentences: 3
+    max_sentences: 2
+    max_words_per_sentence: 10
     style: "conversacional"
     tone: "amigable"
 

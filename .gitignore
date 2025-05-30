@@ -1,5 +1,6 @@
 venv/
-.env
+.env/
+.venv/
 knowledge/
 
 ollama-RAG.code-workspace

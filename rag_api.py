@@ -95,7 +95,11 @@ async def process_query(query_text: str):
             {"role": "user", "content": prompt}
         ]
 
-        response = ollama.chat(model=config["ollama_model"], messages=messages)
+        response = ollama.chat(
+            model=config["ollama_model"],
+            messages=messages,
+            options=config["model"]["parameters"]
+        )
         
         if not response:
             raise Exception("Empty response from Ollama")
