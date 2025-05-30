@@ -17,26 +17,27 @@ if errorlevel 1 (
     exit /b 1
 )
 
-:: Create virtual environment if it doesn't exist
-if not exist venv (
-    echo Creating virtual environment...
-    python -m venv venv
+:: Check if uv is installed, if not install it
+uv --version >nul 2>&1
+if errorlevel 1 (
+    echo Installing uv...
+    pip install uv
 )
 
+:: Create and activate virtual environment using uv
+echo Creating virtual environment with uv...
+uv venv
+
 :: Activate virtual environment
-call venv\Scripts\activate
+call .venv\Scripts\activate
 
-:: Upgrade pip
-echo Upgrading pip...
-python -m pip install --upgrade pip
-
-:: Install requirements
+:: Install requirements using uv
 echo Installing requirements...
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 
 :: Install WebSocket dependencies
 echo Installing WebSocket dependencies...
-pip install "uvicorn[standard]" websockets
+uv pip install "uvicorn[standard]" websockets
 
 :: Pull required Ollama models
 echo Pulling Ollama models...

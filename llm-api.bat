@@ -14,7 +14,7 @@ if errorlevel 1 (
 
 :: Activate virtual environment
 echo Activating virtual environment...
-call venv\Scripts\activate
+call .venv\Scripts\activate
 if errorlevel 1 (
     echo Error: Failed to activate virtual environment
     pause

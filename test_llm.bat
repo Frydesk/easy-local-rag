@@ -5,7 +5,7 @@ echo ======================================
 echo.
 
 :: Activate virtual environment
-call venv\Scripts\activate
+call .venv\Scripts\activate
 
 :: Run the Python WebSocket client
 python chat_client.py
