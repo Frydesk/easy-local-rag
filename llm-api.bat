@@ -3,20 +3,23 @@ setlocal enabledelayedexpansion
 
 echo Starting Spanish RAG System...
 
-:: Load environment variables from .env file
-echo Loading environment variables...
-python -c "from dotenv import load_dotenv; load_dotenv()"
-if errorlevel 1 (
-    echo Error: Failed to load environment variables
-    pause
-    exit /b 1
-)
+:: Set UV_LINK_MODE to copy to avoid hardlinking issues
+set UV_LINK_MODE=copy
 
 :: Activate virtual environment
 echo Activating virtual environment...
 call .venv\Scripts\activate
 if errorlevel 1 (
     echo Error: Failed to activate virtual environment
+    pause
+    exit /b 1
+)
+
+:: Load environment variables from .env file
+echo Loading environment variables...
+python -c "from dotenv import load_dotenv; load_dotenv()"
+if errorlevel 1 (
+    echo Error: Failed to load environment variables
     pause
     exit /b 1
 )

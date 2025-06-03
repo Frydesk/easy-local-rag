@@ -1,6 +1,9 @@
 @echo off
 echo Setting up Spanish RAG System...
 
+:: Set UV_LINK_MODE to copy to avoid hardlinking issues
+set UV_LINK_MODE=copy
+
 :: Check if Python is installed
 python --version >nul 2>&1
 if errorlevel 1 (
@@ -35,13 +38,12 @@ call .venv\Scripts\activate
 echo Installing requirements...
 uv pip install -r requirements.txt
 
-:: Install WebSocket dependencies
-echo Installing WebSocket dependencies...
-uv pip install "uvicorn[standard]" websockets
+:: Install additional dependencies
+echo Installing additional dependencies...
+uv pip install "uvicorn[standard]" websockets python-dotenv
 
 :: Pull required Ollama models
 echo Pulling Ollama models...
-ollama pull llama2
 ollama pull mxbai-embed-large
 
 :: Create knowledge directory if it doesn't exist
