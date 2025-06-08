@@ -1,6 +1,6 @@
 vault_file: "vault.txt"
 embeddings_file: "vault_embeddings.json"
-ollama_model: "samantha-mistral:7b-text-q3_K_S"
+ollama_model: "mistral"
 top_k: 7
 system_message: |
   Eres un asistente experto en extraer la información más relevante de un texto y ayudar en lo que el usuario necesite.

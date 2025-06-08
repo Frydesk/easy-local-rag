@@ -95,11 +95,13 @@ async def process_query(query_text: str):
             {"role": "user", "content": prompt}
         ]
 
-        response = ollama.chat(
+        # Run Ollama chat in a thread pool to avoid blocking
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(None, lambda: ollama.chat(
             model=config["ollama_model"],
             messages=messages,
             options=config["model"]["parameters"]
-        )
+        ))
         
         if not response:
             raise Exception("Empty response from Ollama")
@@ -125,6 +127,28 @@ async def process_query(query_text: str):
     except Exception as e:
         raise Exception(f"Error in process_query: {str(e)}")
 
+async def send_thinking_messages(websocket: WebSocket):
+    try:
+        message_count = 0
+        while True:
+            try:
+                message_count += 1
+                await websocket.send_json({
+                    "type": "thinking",
+                    "data": {
+                        "message": "Processing your request..."
+                    }
+                })
+                await asyncio.sleep(3)  # Wait 3 seconds before next message
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:
+                print(f"\nError sending thinking message #{message_count}: {str(e)}")  # Debug print
+                raise
+    except Exception as e:
+        print(f"\nUnexpected error in thinking messages: {str(e)}")  # Debug print
+        raise
+
 @app.websocket("/airesponse")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -140,7 +164,9 @@ async def websocket_endpoint(websocket: WebSocket):
                     if not isinstance(message_data, dict) or 'type' not in message_data or 'content' not in message_data:
                         await websocket.send_json({
                             "type": "error",
-                            "message": "Invalid message format. Expected {type: string, content: string}"
+                            "data": {
+                                "message": "Invalid message format. Expected {type: string, content: string}"
+                            }
                         })
                         continue
                     query_text = message_data['content']
@@ -150,21 +176,42 @@ async def websocket_endpoint(websocket: WebSocket):
                 
                 print(f"\nUser: {query_text}")  # Print user's query
                 
+                # Start sending thinking messages immediately after receiving the query
+                thinking_task = asyncio.create_task(send_thinking_messages(websocket))
+                
                 # Process the query
                 try:
                     result = await process_query(query_text)
+                    
+                    # Cancel thinking messages before sending the response
+                    thinking_task.cancel()
+                    try:
+                        await thinking_task
+                    except asyncio.CancelledError:
+                        pass
+                    
                     # Print just the answer to console
-                    print(f"Dr. Simi: {result['answer']}\n")
+                    print(f"Assistant: {result['answer']}\n")
                     await websocket.send_json({
                         "type": "answer",
                         "data": result
                     })
                 except Exception as e:
+                    # Cancel thinking messages before sending error
+                    print("\nCancelling thinking messages due to error...")  # Debug print
+                    thinking_task.cancel()
+                    try:
+                        await thinking_task
+                    except asyncio.CancelledError:
+                        pass
+                    
                     error_msg = str(e)
                     print(f"Error: {error_msg}")
                     await websocket.send_json({
                         "type": "error",
-                        "message": error_msg
+                        "data": {
+                            "message": error_msg
+                        }
                     })
 
             except WebSocketDisconnect:
@@ -175,7 +222,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 try:
                     await websocket.send_json({
                         "type": "error",
-                        "message": str(e)
+                        "data": {
+                            "message": str(e)
+                        }
                     })
                 except:
                     pass
@@ -185,7 +234,9 @@ async def websocket_endpoint(websocket: WebSocket):
         try:
             await websocket.send_json({
                 "type": "error",
-                "message": str(e)
+                "data": {
+                    "message": str(e)
+                }
             })
         except:
             pass
