@@ -1,154 +1,105 @@
-# Ollama RAG (Retrieval-Augmented Generation) System
+# Spanish RAG System
 
-A powerful RAG system built with Ollama, FastAPI, and Python that enables intelligent document querying and response generation with customizable personalities. The system is designed to work with any Ollama-compatible model, giving you the flexibility to choose the best model for your needs.
-
-This proyect was tested on Windows, although Linux is most probably compatible, it has not been tested.
-
-
-## Features
-
-- 🤖 Compatible with any Ollama model (Mistral, Llama2, Mixtral, etc.)
-- 📚 Document processing and embedding generation
-- 🔍 Semantic search capabilities
-- 🎭 Customizable AI personalities
-- 🌐 RESTful API interface
-- 📝 Support for multiple document formats
-- 🔒 Local processing for enhanced privacy
-
-## Prerequisites
-
-- Python 3.8 or higher
-- Ollama installed and running locally
-- Windows OS (for batch files) or Linux/Mac (with script modifications)
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/josepheudave/ollama-RAG.git
-cd ollama-RAG
-```
-
-## Run the setup script:
-```bash
-# On Windows
-setup.bat
-# On Linux/Mac
-python setup.py
-```
+A Retrieval-Augmented Generation (RAG) system for Spanish language processing using Ollama models.
 
 ## Configuration
 
-The system is configured through `config.yaml`. Key settings include:
+The system uses a YAML configuration file (`config.yaml`) to manage model settings and parameters:
 
-- `ollama_model`: The Ollama model to use (e.g., "mistral", "llama2", "mixtral", etc.)
-- `top_k`: Number of relevant chunks to retrieve
-- `personality`: AI personality configuration
-- `model`: Embedding model settings
+```yaml
+models:
+  llm: mistral          # Main language model for text generation
+  embedding: mxbai-embed-large  # Model for creating embeddings
 
-You can use any model available in Ollama by changing the `ollama_model` setting in the configuration file.
-
-## Knowledge Base Setup
-
-1. Create a `knowledge` directory in the project root:
-```bash
-mkdir knowledge
+parameters:
+  temperature: 0.7      # Controls randomness in model output
+  max_tokens: 2048      # Maximum tokens in model response
 ```
 
-2. Place your text files in the `knowledge` directory. Supported formats:
-   - Text files (.txt)
-   - PDF files (.pdf)
-   - Other text-based documents
+### Available Models
 
-3. The system will process these files and create embeddings for semantic search.
+You can change the models in `config.yaml` to use different Ollama models. Some options include:
 
-## Testing
+- LLM Models:
+  - mistral
+  - llama2
+  - codellama
+  - neural-chat
+  - starling-lm
 
-you can test funcionality and RAG system by running test_llm.bat with llm-api already open 
+- Embedding Models:
+  - mxbai-embed-large
+  - nomic-embed-text
+  - all-MiniLM-L6-v2
 
-## API Usage
+## Setup and Running
 
-1. Start the API server:
-```bash
-# On Windows
-llm-api.bat
-# On Linux/Mac
-python rag_api.py
+1. Ensure you have Python 3.8+ installed
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Create and activate virtual environment:
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate  # Windows
+   source .venv/bin/activate  # Linux/Mac
+   ```
+4. Install Ollama from [ollama.ai](https://ollama.ai)
+5. Run the system:
+   ```bash
+   llm-api.bat  # Windows
+   ```
+
+## System Components
+
+The system consists of several components:
+
+1. **Model Management**
+   - Automatically checks and loads required models
+   - Handles model verification and error checking
+   - Supports dynamic model switching through configuration
+
+2. **Knowledge Base Processing**
+   - Processes and indexes the knowledge base
+   - Creates embeddings for efficient retrieval
+
+3. **API Service**
+   - Provides REST API endpoints for RAG functionality
+   - Handles model inference and response generation
+
+## Environment Variables
+
+The system uses a `.env` file for environment-specific configurations. Create a `.env` file with your settings:
+
+```env
+# Add your environment variables here
 ```
 
-2. The API will be available at `http://localhost:8100`
+## Error Handling
 
-3. WebSocket Example:
-```python
-import asyncio
-import websockets
-import json
+The system includes comprehensive error handling for:
+- Model loading failures
+- Configuration issues
+- API startup problems
+- Knowledge base processing errors
 
-async def chat():
-    uri = 'ws://localhost:8100/airesponse'
-    async with websockets.connect(uri) as websocket:
-        # Send a message
-        message = {
-            "type": "message",
-            "content": "Your question here"
-        }
-        await websocket.send(json.dumps(message))
-        
-        # Receive response
-        response = await websocket.recv()
-        result = json.loads(response)
-        print(result)
+## Customization
 
-asyncio.run(chat())
-```
+To customize the system:
 
-## API Endpoints
+1. Modify `config.yaml` to change models or parameters
+2. Adjust environment variables in `.env`
+3. Modify the knowledge base processing in `process_knowledge.py`
+4. Customize API endpoints in `rag_api.py`
 
-### WebSocket /airesponse
-Interactive chat endpoint for real-time communication with the RAG system.
+## Requirements
 
-Message Format:
-```json
-{
-    "type": "message",
-    "content": "Your question here"
-}
-```
-
-Response Format:
-```json
-{
-    "type": "answer",
-    "data": {
-        "answer": "AI response",
-        "sources": ["Relevant source 1", "Relevant source 2"]
-    }
-}
-```
-
-Error Response Format:
-```json
-{
-    "type": "error",
-    "message": "Error description"
-}
-```
-
-The WebSocket endpoint supports:
-- Real-time bidirectional communication
-- JSON message format
-- Error handling with descriptive messages
-- Source attribution for responses
-
-## Project Structure
-
-- `rag_api.py`: Main FastAPI application
-- `process_knowledge.py`: Document processing utilities
-- `config.yaml`: Configuration settings
-- `knowledge/`: Directory for your knowledge base files
-- `text/`: Text processing utilities
-- `requirements.txt`: Python dependencies
-
-## License
-
-This project is licensed under MIT License
+See `requirements.txt` for full dependency list. Key dependencies include:
+- openai>=1.0.0
+- torch>=2.0.0
+- PyPDF2>=3.0.0
+- ollama>=0.1.0
+- pyyaml>=6.0.0
+- fastapi>=0.100.0
+- uvicorn[standard]>=0.23.0

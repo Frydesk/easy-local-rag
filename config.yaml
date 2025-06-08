@@ -1,6 +1,6 @@
 vault_file: "vault.txt"
 embeddings_file: "vault_embeddings.json"
-ollama_model: "mistral"
+ollama_model: "samantha-mistral:7b-text-q3_K_S"
 top_k: 7
 system_message: |
   Eres un asistente experto en extraer la información más relevante de un texto y ayudar en lo que el usuario necesite.
@@ -17,7 +17,6 @@ ollama_api:
   api_key: "mistral"
 
 model:
-  name: "mistral"
   embedding_model: "mxbai-embed-large"
   top_k_chunks: 3
   parameters:
@@ -86,3 +85,7 @@ prompt_template: |
   Usa {personality[traits][2]} y {personality[traits][3]}. 
   Si no sabes algo, dilo de manera amigable. 
   Mantén tus respuestas en {personality[response_constraints][max_sentences]} oraciones máximo.
+
+parameters:
+  temperature: 0.7
+  max_tokens: 2048
